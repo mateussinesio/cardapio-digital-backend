@@ -24,3 +24,9 @@ Em um terminal, utilize o comando ```mvn clean package``` para instalar as depen
 e compilar a aplicação novamente.
 
 Vá até a classe "**MenuApplication**" e execute a aplicação.
+
+<br>
+
+# Frontend
+
+Você encontrará o frontend para essa aplicação [clicando aqui](https://github.com/mateussinesio/cardapio-digital-frontend.git).
