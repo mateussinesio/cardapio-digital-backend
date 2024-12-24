@@ -18,16 +18,16 @@ public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
+
     private String name;
-    @Lob
-    private byte[] image;
+    private String imagePath;
 
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<Item> items;
 
     public Category(CategoryRequestDTO data) {
-        name = data.name();
-        image = data.image();
+        this.name = data.name();
+        this.imagePath = data.imagePath();
     }
 }
