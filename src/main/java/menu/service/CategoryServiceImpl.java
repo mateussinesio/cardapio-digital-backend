@@ -32,15 +32,15 @@ public class CategoryServiceImpl implements CategoryService {
             categoryRepository.delete(category.get());
             return category.get();
         } else {
-            throw new RuntimeException("Categoria não encontrada");
+            throw new RuntimeException("Category not found.");
         }
     }
 
     @Override
     public Category updateCategory(String id, CategoryRequestDTO data) {
-        Category category = categoryRepository.findById(id).orElseThrow(() -> new RuntimeException("Categoria não encontrada."));
+        Category category = categoryRepository.findById(id).orElseThrow(() -> new RuntimeException("Category not found."));
         category.setName(data.name());
-        category.setImage(data.image());
+        category.setImagePath(data.imagePath());
         return categoryRepository.save(category);
     }
 

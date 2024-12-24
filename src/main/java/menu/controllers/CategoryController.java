@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 @RestController
@@ -27,17 +30,31 @@ public class CategoryController {
 
     @CrossOrigin(origins = "http://localhost:5173", allowedHeaders = {"Content-Type", "Authorization"})
     @PostMapping
-    public CategoryResponseDTO addCategory(@RequestParam("name") String name, @RequestParam("image") MultipartFile image) {
-        byte[] imageBytes = null;
+    public CategoryResponseDTO addCategory(
+            @RequestParam("name") String name,
+            @RequestParam("image") MultipartFile image) {
+        String imagePath;
         try {
-            imageBytes = image.getBytes();
+            String userHome = System.getProperty("user.home");
+            String uploadDir = userHome + "/images/";
+            String fileName = java.util.UUID.randomUUID() + "_" + image.getOriginalFilename();
+            imagePath = uploadDir + fileName;
+
+            Path path = Paths.get(uploadDir);
+            if (!Files.exists(path)) {
+                Files.createDirectories(path);
+            }
+
+            Path filePath = path.resolve(fileName);
+            image.transferTo(filePath.toFile());
         } catch (IOException e) {
-            throw new RuntimeException("Failed to process the image.", e);
+            throw new RuntimeException("Error saving the image", e);
         }
 
-        CategoryRequestDTO data = new CategoryRequestDTO(name, imageBytes);
+        CategoryRequestDTO data = new CategoryRequestDTO(name, imagePath);
         Category category = new Category(data);
         Category savedCategory = categoryService.addCategory(category);
+
         return new CategoryResponseDTO(savedCategory);
     }
 
