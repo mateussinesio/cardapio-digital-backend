@@ -32,8 +32,7 @@ public class CategoryController {
         try {
             imageBytes = image.getBytes();
         } catch (IOException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Erro ao ler a imagem", e);
+            throw new RuntimeException("Failed to process the image.", e);
         }
 
         CategoryRequestDTO data = new CategoryRequestDTO(name, imageBytes);
