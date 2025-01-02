@@ -1,6 +1,5 @@
 package menu.controllers;
 
-import menu.dtos.CategoryRequestDTO;
 import menu.dtos.ItemRequestDTO;
 import menu.dtos.ItemResponseDTO;
 import menu.model.Item;
@@ -11,9 +10,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/items")
@@ -29,7 +33,7 @@ public class ItemController {
     @GetMapping("/{category}")
     public ResponseEntity<?> showItemsInCategory(@PathVariable String category) {
         Category categoryName = categoryService.findByName(category);
-        if (category == null) {
+        if (categoryName == null) {
             throw new RuntimeException("Category not found.");
         }
 
@@ -43,15 +47,69 @@ public class ItemController {
 
     @CrossOrigin(origins = "http://localhost:5173", allowedHeaders = {"Content-Type", "Authorization"})
     @PostMapping
-    public ItemResponseDTO addItem(@RequestBody ItemRequestDTO data) {
+    public ItemResponseDTO addItem(
+            @RequestParam("name") String name,
+            @RequestParam("category") String category,
+            @RequestParam("description") String description,
+            @RequestParam("price") BigDecimal price,
+            @RequestParam("image") MultipartFile image) {
+        String imagePath;
+        try {
+            String userHome = System.getProperty("user.home");
+            String uploadDir = userHome + "/images/";
+            String fileName = java.util.UUID.randomUUID() + "_" + image.getOriginalFilename();
+            imagePath = "/images/" + fileName;
+
+            Path path = Paths.get(uploadDir);
+            if (!Files.exists(path)) {
+                Files.createDirectories(path);
+            }
+
+            Path filePath = path.resolve(fileName);
+            image.transferTo(filePath.toFile());
+        } catch (IOException e) {
+            throw new RuntimeException("Error saving the image", e);
+        }
+
+        Category categoryName = categoryService.findByName(category);
+        if (categoryName == null) {
+            throw new RuntimeException("Category not found.");
+        }
+
+        ItemRequestDTO data = new ItemRequestDTO(name, category, description, imagePath, price);
         Item item = itemService.addItem(data);
         return new ItemResponseDTO(item);
     }
 
     @CrossOrigin(origins = "http://localhost:5173", allowedHeaders = {"Content-Type", "Authorization"})
     @PutMapping("{id}")
-    public Item updateItem(@PathVariable("id") String id, @RequestBody ItemRequestDTO data) {
-        return itemService.updateItem(id, data);
+    public ItemResponseDTO updateItem(@PathVariable("id") String id, @RequestParam("name") String name, @RequestParam("category") String category, @RequestParam("description") String description, @RequestParam("price") BigDecimal price, @RequestParam("image") MultipartFile image) {
+        String imagePath;
+        try {
+            String userHome = System.getProperty("user.home");
+            String uploadDir = userHome + "/images/";
+            String fileName = java.util.UUID.randomUUID() + "_" + image.getOriginalFilename();
+            imagePath = "/images/" + fileName;
+
+            Path path = Paths.get(uploadDir);
+            if (!Files.exists(path)) {
+                Files.createDirectories(path);
+            }
+
+            Path filePath = path.resolve(fileName);
+            image.transferTo(filePath.toFile());
+        } catch (IOException e) {
+            throw new RuntimeException("Error saving the image", e);
+        }
+
+        Category categoryName = categoryService.findByName(category);
+        if (categoryName == null) {
+            throw new RuntimeException("Category not found.");
+        }
+
+        ItemRequestDTO data = new ItemRequestDTO(name, category, description, imagePath, price);
+        Item updatedItem = itemService.updateItem(id, data);
+        return new ItemResponseDTO(updatedItem);
     }
 
     @CrossOrigin(origins = "http://localhost:5173", allowedHeaders = {"Content-Type", "Authorization"})
