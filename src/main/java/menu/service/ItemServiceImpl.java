@@ -39,11 +39,25 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Item updateItem(String id, ItemRequestDTO data) {
-        Item item = itemRepository.findById(id).orElseThrow(() -> new RuntimeException("Item não encontrada."));
+        Item item = itemRepository.findById(id).orElseThrow(() -> new RuntimeException("Item not found."));
+
         item.setName(data.name());
         item.setDescription(data.description());
-        item.setImage(data.image());
         item.setPrice(data.price());
+
+        if (data.image() != null && !data.image().isEmpty()) {
+            item.setImage(data.image());
+        }
+
+        if (data.category() != null && !data.category().isBlank()) {
+            Category category = categoryRepository.findByName(data.category());
+            if (category != null) {
+                item.setCategory(category);
+            } else {
+                throw new RuntimeException("Category not found");
+            }
+        }
+
         return itemRepository.save(item);
     }
 

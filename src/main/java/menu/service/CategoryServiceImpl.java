@@ -39,8 +39,14 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public Category updateCategory(String id, CategoryRequestDTO data) {
         Category category = categoryRepository.findById(id).orElseThrow(() -> new RuntimeException("Category not found."));
+
         category.setName(data.name());
-        category.setImagePath(data.imagePath());
+
+        // Verifica se a imagem foi fornecida e se sim, atualiza
+        if (data.imagePath() != null && !data.imagePath().trim().isEmpty()) {
+            category.setImagePath(data.imagePath());
+        }
+
         return categoryRepository.save(category);
     }
 

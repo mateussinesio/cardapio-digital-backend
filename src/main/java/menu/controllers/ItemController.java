@@ -83,34 +83,48 @@ public class ItemController {
 
     @CrossOrigin(origins = "http://localhost:5173", allowedHeaders = {"Content-Type", "Authorization"})
     @PutMapping("{id}")
-    public ItemResponseDTO updateItem(@PathVariable("id") String id, @RequestParam("name") String name, @RequestParam("category") String category, @RequestParam("description") String description, @RequestParam("price") BigDecimal price, @RequestParam("image") MultipartFile image) {
-        String imagePath;
-        try {
-            String userHome = System.getProperty("user.home");
-            String uploadDir = userHome + "/images/";
-            String fileName = java.util.UUID.randomUUID() + "_" + image.getOriginalFilename();
-            imagePath = "/images/" + fileName;
+    public ItemResponseDTO updateItem(
+            @PathVariable("id") String id,
+            @RequestParam("name") String name,
+            @RequestParam(value = "category", required = false) String category,
+            @RequestParam("description") String description,
+            @RequestParam("price") BigDecimal price,
+            @RequestParam(value = "image", required = false) MultipartFile image) {
 
-            Path path = Paths.get(uploadDir);
-            if (!Files.exists(path)) {
-                Files.createDirectories(path);
+        String imagePath = null;
+
+        // Se uma imagem for fornecida, processa ela
+        if (image != null && !image.isEmpty()) {
+            try {
+                String userHome = System.getProperty("user.home");
+                String uploadDir = userHome + "/images/";
+                String fileName = java.util.UUID.randomUUID() + "_" + image.getOriginalFilename();
+                imagePath = "/images/" + fileName;
+
+                Path path = Paths.get(uploadDir);
+                if (!Files.exists(path)) {
+                    Files.createDirectories(path);
+                }
+
+                Path filePath = path.resolve(fileName);
+                image.transferTo(filePath.toFile());
+            } catch (IOException e) {
+                throw new RuntimeException("Error saving the image", e);
             }
-
-            Path filePath = path.resolve(fileName);
-            image.transferTo(filePath.toFile());
-        } catch (IOException e) {
-            throw new RuntimeException("Error saving the image", e);
         }
 
-        Category categoryName = categoryService.findByName(category);
-        if (categoryName == null) {
-            throw new RuntimeException("Category not found.");
-        }
+        String finalCategory = category != null && !category.isBlank() ? category : null;
 
-        ItemRequestDTO data = new ItemRequestDTO(name, category, description, imagePath, price);
+        ItemRequestDTO data = new ItemRequestDTO(name, finalCategory, description, imagePath, price);
         Item updatedItem = itemService.updateItem(id, data);
+
+        if (updatedItem == null) {
+            throw new RuntimeException("Item not found.");
+        }
+
         return new ItemResponseDTO(updatedItem);
     }
+
 
     @CrossOrigin(origins = "http://localhost:5173", allowedHeaders = {"Content-Type", "Authorization"})
     @DeleteMapping("{id}")
