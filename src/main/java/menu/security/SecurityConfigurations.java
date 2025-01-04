@@ -37,9 +37,6 @@ public class SecurityConfigurations {
                         .requestMatchers(HttpMethod.DELETE, "/items").hasRole("ADMIN")
                         .requestMatchers("/cozinha/cardapio").authenticated()
                         .anyRequest().permitAll())
-                .formLogin(formLogin -> formLogin
-                        .loginPage("/login")
-                        .permitAll())
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
