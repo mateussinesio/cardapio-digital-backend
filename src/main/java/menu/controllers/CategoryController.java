@@ -22,13 +22,13 @@ public class CategoryController {
     @Autowired
     private CategoryService categoryService;
 
-    @CrossOrigin(origins = "http://localhost:5173", allowedHeaders = {"Content-Type", "Authorization"})
+    @CrossOrigin(origins = "http://localhost:5173", allowedHeaders = {"Content-Type", "Authorization"}, allowCredentials = "true")
     @GetMapping
     public List<CategoryResponseDTO> showCategories() {
         return categoryService.showCategories().stream().map(CategoryResponseDTO::new).toList();
     }
 
-    @CrossOrigin(origins = "http://localhost:5173", allowedHeaders = {"Content-Type", "Authorization"})
+    @CrossOrigin(origins = "http://localhost:5173", allowedHeaders = {"Content-Type", "Authorization"}, allowCredentials = "true")
     @PostMapping
     public CategoryResponseDTO addCategory(
             @RequestParam("name") String name,
@@ -58,14 +58,14 @@ public class CategoryController {
         return new CategoryResponseDTO(savedCategory);
     }
 
-    @CrossOrigin(origins = "http://localhost:5173", allowedHeaders = {"Content-Type", "Authorization"})
+    @CrossOrigin(origins = "http://localhost:5173", allowedHeaders = {"Content-Type", "Authorization"}, allowCredentials = "true")
     @DeleteMapping("{id}")
     public ResponseEntity<String> deleteCategory(@PathVariable("id") String id) {
         categoryService.deleteCategory(id);
         return ResponseEntity.ok("Successfully deleted!");
     }
 
-    @CrossOrigin(origins = "http://localhost:5173", allowedHeaders = {"Content-Type", "Authorization"})
+    @CrossOrigin(origins = "http://localhost:5173", allowedHeaders = {"Content-Type", "Authorization"}, allowCredentials = "true")
     @PutMapping("{id}")
     public CategoryResponseDTO updateCategory(@PathVariable("id") String id,
                                               @RequestParam("name") String name,

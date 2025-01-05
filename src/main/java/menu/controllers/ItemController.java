@@ -29,7 +29,7 @@ public class ItemController {
     @Autowired
     private CategoryService categoryService;
 
-    @CrossOrigin(origins = "http://localhost:5173", allowedHeaders = {"Content-Type", "Authorization"})
+    @CrossOrigin(origins = "http://localhost:5173", allowedHeaders = {"Content-Type", "Authorization"}, allowCredentials = "true")
     @GetMapping("/{category}")
     public ResponseEntity<?> showItemsInCategory(@PathVariable String category) {
         Category categoryName = categoryService.findByName(category);
@@ -45,7 +45,7 @@ public class ItemController {
         return ResponseEntity.ok(items);
     }
 
-    @CrossOrigin(origins = "http://localhost:5173", allowedHeaders = {"Content-Type", "Authorization"})
+    @CrossOrigin(origins = "http://localhost:5173", allowedHeaders = {"Content-Type", "Authorization"}, allowCredentials = "true")
     @PostMapping
     public ItemResponseDTO addItem(
             @RequestParam("name") String name,
@@ -81,7 +81,7 @@ public class ItemController {
         return new ItemResponseDTO(item);
     }
 
-    @CrossOrigin(origins = "http://localhost:5173", allowedHeaders = {"Content-Type", "Authorization"})
+    @CrossOrigin(origins = "http://localhost:5173", allowedHeaders = {"Content-Type", "Authorization"}, allowCredentials = "true")
     @PutMapping("{id}")
     public ItemResponseDTO updateItem(
             @PathVariable("id") String id,
@@ -93,7 +93,6 @@ public class ItemController {
 
         String imagePath = null;
 
-        // Se uma imagem for fornecida, processa ela
         if (image != null && !image.isEmpty()) {
             try {
                 String userHome = System.getProperty("user.home");
@@ -126,7 +125,7 @@ public class ItemController {
     }
 
 
-    @CrossOrigin(origins = "http://localhost:5173", allowedHeaders = {"Content-Type", "Authorization"})
+    @CrossOrigin(origins = "http://localhost:5173", allowedHeaders = {"Content-Type", "Authorization"}, allowCredentials = "true")
     @DeleteMapping("{id}")
     public ResponseEntity<String> deleteItem(@PathVariable("id") String id) {
         itemService.deleteItem(id);

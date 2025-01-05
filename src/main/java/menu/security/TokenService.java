@@ -15,7 +15,7 @@ import java.time.ZoneOffset;
 @Service
 public class TokenService {
 
-    @Value("$api.security.token.secret")
+    @Value("${api.security.token.secret}")
     private String secret;
 
     public String generateToken(User user) {
@@ -32,6 +32,23 @@ public class TokenService {
         }
     }
 
+    public boolean isValidToken(String token) {
+        try {
+            Algorithm algorithm = Algorithm.HMAC256(secret);
+            JWT.require(algorithm)
+                    .withIssuer("cardapio")
+                    .build()
+                    .verify(token);
+            return true;
+        } catch (JWTVerificationException exception) {
+            return false;
+        }
+    }
+
+    private Instant generateExpirationDate() {
+        return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-03:00"));
+    }
+
     public String validateToken(String token) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(secret);
@@ -41,11 +58,7 @@ public class TokenService {
                     .verify(token)
                     .getSubject();
         } catch (JWTVerificationException exception) {
-            return "";
+            return null;
         }
-    }
-
-    private Instant generateExpirationDate() {
-        return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-03:00"));
     }
 }

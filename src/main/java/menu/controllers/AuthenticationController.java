@@ -1,13 +1,16 @@
 package menu.controllers;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import menu.dtos.LoginResponseDTO;
 import menu.dtos.RegisterDTO;
 import menu.security.TokenService;
 import menu.repository.UserRepository;
 import menu.dtos.AuthenticationDTO;
 import menu.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -16,7 +19,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:5173", allowedHeaders = {"Content-Type", "Authorization", "Accept", "Origin", "X-Requested-With"})
+@CrossOrigin(origins = "http://localhost:5173", allowedHeaders = {"Content-Type", "Authorization", "Accept", "Origin", "X-Requested-With"}, allowCredentials = "true")
 @RequestMapping("/auth")
 public class AuthenticationController {
 
@@ -34,12 +37,20 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody AuthenticationDTO data) {
+    public ResponseEntity<Void> login(@Valid @RequestBody AuthenticationDTO data, HttpServletResponse response) {
         UsernamePasswordAuthenticationToken usernamePassword = new UsernamePasswordAuthenticationToken(data.login(), data.password());
         Authentication auth = authenticationManager.authenticate(usernamePassword);
 
         String token = tokenService.generateToken((User) auth.getPrincipal());
-        return ResponseEntity.ok(new LoginResponseDTO(token));
+
+        Cookie cookie = new Cookie("token", token);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(60 * 60 * 2);
+        response.addCookie(cookie);
+
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/register")
@@ -53,5 +64,26 @@ public class AuthenticationController {
         userRepository.save(newUser);
 
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/verify")
+    public ResponseEntity<Void> verifyToken(HttpServletRequest request) {
+        String token = recoverTokenFromCookie(request);
+        if (token == null || !tokenService.isValidToken(token)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.ok().build();
+    }
+
+    private String recoverTokenFromCookie(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("token".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
     }
 }
