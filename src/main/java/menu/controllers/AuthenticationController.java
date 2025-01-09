@@ -66,6 +66,18 @@ public class AuthenticationController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletResponse response) {
+        Cookie cookie = new Cookie("token", null);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/verify")
     public ResponseEntity<Void> verifyToken(HttpServletRequest request) {
         String token = recoverTokenFromCookie(request);
