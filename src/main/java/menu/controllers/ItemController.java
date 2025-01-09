@@ -52,23 +52,25 @@ public class ItemController {
             @RequestParam("category") String category,
             @RequestParam("description") String description,
             @RequestParam("price") BigDecimal price,
-            @RequestParam("image") MultipartFile image) {
-        String imagePath;
-        try {
-            String userHome = System.getProperty("user.home");
-            String uploadDir = userHome + "/images/";
-            String fileName = java.util.UUID.randomUUID() + "_" + image.getOriginalFilename();
-            imagePath = "/images/" + fileName;
+            @RequestParam(value = "image", required = false) MultipartFile image) {
+        String imagePath = null;
+        if (image != null && !image.isEmpty()) {
+            try {
+                String userHome = System.getProperty("user.home");
+                String uploadDir = userHome + "/images/";
+                String fileName = java.util.UUID.randomUUID() + "_" + image.getOriginalFilename();
+                imagePath = "/images/" + fileName;
 
-            Path path = Paths.get(uploadDir);
-            if (!Files.exists(path)) {
-                Files.createDirectories(path);
+                Path path = Paths.get(uploadDir);
+                if (!Files.exists(path)) {
+                    Files.createDirectories(path);
+                }
+
+                Path filePath = path.resolve(fileName);
+                image.transferTo(filePath.toFile());
+            } catch (IOException e) {
+                throw new RuntimeException("Error saving the image", e);
             }
-
-            Path filePath = path.resolve(fileName);
-            image.transferTo(filePath.toFile());
-        } catch (IOException e) {
-            throw new RuntimeException("Error saving the image", e);
         }
 
         Category categoryName = categoryService.findByName(category);
@@ -76,7 +78,7 @@ public class ItemController {
             throw new RuntimeException("Category not found.");
         }
 
-        ItemRequestDTO data = new ItemRequestDTO(name, category, description, imagePath, price);
+        ItemRequestDTO data = new ItemRequestDTO(name, category, description, imagePath, price, false);
         Item item = itemService.addItem(data);
         return new ItemResponseDTO(item);
     }
@@ -89,7 +91,8 @@ public class ItemController {
             @RequestParam(value = "category", required = false) String category,
             @RequestParam("description") String description,
             @RequestParam("price") BigDecimal price,
-            @RequestParam(value = "image", required = false) MultipartFile image) {
+            @RequestParam(value = "image", required = false) MultipartFile image,
+            @RequestParam(value = "removeImage", required = false) boolean removeImage) {
 
         String imagePath = null;
 
@@ -110,11 +113,16 @@ public class ItemController {
             } catch (IOException e) {
                 throw new RuntimeException("Error saving the image", e);
             }
+        } else if (removeImage) {
+            imagePath = null;
+        } else {
+            Item existingItem = itemService.getItemById(id);
+            imagePath = existingItem.getImage();
         }
 
         String finalCategory = category != null && !category.isBlank() ? category : null;
 
-        ItemRequestDTO data = new ItemRequestDTO(name, finalCategory, description, imagePath, price);
+        ItemRequestDTO data = new ItemRequestDTO(name, finalCategory, description, imagePath, price, removeImage);
         Item updatedItem = itemService.updateItem(id, data);
 
         if (updatedItem == null) {
@@ -123,7 +131,6 @@ public class ItemController {
 
         return new ItemResponseDTO(updatedItem);
     }
-
 
     @CrossOrigin(origins = "http://localhost:5173", allowedHeaders = {"Content-Type", "Authorization"}, allowCredentials = "true")
     @DeleteMapping("{id}")

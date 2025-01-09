@@ -15,4 +15,6 @@ public interface ItemService {
     Item updateItem(String id, ItemRequestDTO data);
 
     void deleteItem(String id);
+
+    Item getItemById(String id);
 }

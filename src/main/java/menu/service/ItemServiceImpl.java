@@ -47,6 +47,8 @@ public class ItemServiceImpl implements ItemService {
 
         if (data.image() != null && !data.image().isEmpty()) {
             item.setImage(data.image());
+        } else if (data.image() == null && data.removeImage()) {
+            item.setImage(null);
         }
 
         if (data.category() != null && !data.category().isBlank()) {
@@ -69,5 +71,10 @@ public class ItemServiceImpl implements ItemService {
         } else {
             throw new RuntimeException("Item not found");
         }
+    }
+
+    @Override
+    public Item getItemById(String id) {
+        return itemRepository.findById(id).orElseThrow(() -> new RuntimeException("Item not found."));
     }
 }

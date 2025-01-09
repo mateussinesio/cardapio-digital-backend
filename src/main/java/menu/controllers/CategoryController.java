@@ -32,46 +32,8 @@ public class CategoryController {
     @PostMapping
     public CategoryResponseDTO addCategory(
             @RequestParam("name") String name,
-            @RequestParam("image") MultipartFile image) {
-        String imagePath;
-        try {
-            String userHome = System.getProperty("user.home");
-            String uploadDir = userHome + "/images/";
-            String fileName = java.util.UUID.randomUUID() + "_" + image.getOriginalFilename();
-            imagePath = uploadDir + fileName;
-
-            Path path = Paths.get(uploadDir);
-            if (!Files.exists(path)) {
-                Files.createDirectories(path);
-            }
-
-            Path filePath = path.resolve(fileName);
-            image.transferTo(filePath.toFile());
-        } catch (IOException e) {
-            throw new RuntimeException("Error saving the image", e);
-        }
-
-        CategoryRequestDTO data = new CategoryRequestDTO(name, imagePath);
-        Category category = new Category(data);
-        Category savedCategory = categoryService.addCategory(category);
-
-        return new CategoryResponseDTO(savedCategory);
-    }
-
-    @CrossOrigin(origins = "http://localhost:5173", allowedHeaders = {"Content-Type", "Authorization"}, allowCredentials = "true")
-    @DeleteMapping("{id}")
-    public ResponseEntity<String> deleteCategory(@PathVariable("id") String id) {
-        categoryService.deleteCategory(id);
-        return ResponseEntity.ok("Successfully deleted!");
-    }
-
-    @CrossOrigin(origins = "http://localhost:5173", allowedHeaders = {"Content-Type", "Authorization"}, allowCredentials = "true")
-    @PutMapping("{id}")
-    public CategoryResponseDTO updateCategory(@PathVariable("id") String id,
-                                              @RequestParam("name") String name,
-                                              @RequestParam(value = "image", required = false) MultipartFile image) {
+            @RequestParam(value = "image", required = false) MultipartFile image) {
         String imagePath = null;
-
         if (image != null && !image.isEmpty()) {
             try {
                 String userHome = System.getProperty("user.home");
@@ -91,7 +53,53 @@ public class CategoryController {
             }
         }
 
-        CategoryRequestDTO data = new CategoryRequestDTO(name, imagePath);
+        CategoryRequestDTO data = new CategoryRequestDTO(name, imagePath, false);
+        Category category = new Category(data);
+        Category savedCategory = categoryService.addCategory(category);
+
+        return new CategoryResponseDTO(savedCategory);
+    }
+
+    @CrossOrigin(origins = "http://localhost:5173", allowedHeaders = {"Content-Type", "Authorization"}, allowCredentials = "true")
+    @DeleteMapping("{id}")
+    public ResponseEntity<String> deleteCategory(@PathVariable("id") String id) {
+        categoryService.deleteCategory(id);
+        return ResponseEntity.ok("Successfully deleted!");
+    }
+
+    @CrossOrigin(origins = "http://localhost:5173", allowedHeaders = {"Content-Type", "Authorization"}, allowCredentials = "true")
+    @PutMapping("{id}")
+    public CategoryResponseDTO updateCategory(@PathVariable("id") String id,
+                                              @RequestParam("name") String name,
+                                              @RequestParam(value = "image", required = false) MultipartFile image,
+                                              @RequestParam(value = "removeImage", required = false) boolean removeImage) {
+        String imagePath = null;
+
+        if (image != null && !image.isEmpty()) {
+            try {
+                String userHome = System.getProperty("user.home");
+                String uploadDir = userHome + "/images/";
+                String fileName = java.util.UUID.randomUUID() + "_" + image.getOriginalFilename();
+                imagePath = uploadDir + fileName;
+
+                Path path = Paths.get(uploadDir);
+                if (!Files.exists(path)) {
+                    Files.createDirectories(path);
+                }
+
+                Path filePath = path.resolve(fileName);
+                image.transferTo(filePath.toFile());
+            } catch (IOException e) {
+                throw new RuntimeException("Error saving the image", e);
+            }
+        } else if (removeImage) {
+            imagePath = null;
+        } else {
+            Category existingCategory = categoryService.getCategoryById(id);
+            imagePath = existingCategory.getImagePath();
+        }
+
+        CategoryRequestDTO data = new CategoryRequestDTO(name, imagePath, removeImage);
         Category updatedCategory = categoryService.updateCategory(id, data);
         return new CategoryResponseDTO(updatedCategory);
     }

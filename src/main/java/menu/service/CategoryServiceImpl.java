@@ -26,11 +26,10 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public Category deleteCategory(String id) {
+    public void deleteCategory(String id) {
         Optional<Category> category = categoryRepository.findById(id);
         if (category.isPresent()) {
             categoryRepository.delete(category.get());
-            return category.get();
         } else {
             throw new RuntimeException("Category not found.");
         }
@@ -42,9 +41,10 @@ public class CategoryServiceImpl implements CategoryService {
 
         category.setName(data.name());
 
-        // Verifica se a imagem foi fornecida e se sim, atualiza
-        if (data.imagePath() != null && !data.imagePath().trim().isEmpty()) {
+        if (data.imagePath() != null) {
             category.setImagePath(data.imagePath());
+        } else if (data.imagePath() == null && data.removeImage()) {
+            category.setImagePath(null);
         }
 
         return categoryRepository.save(category);
@@ -53,5 +53,10 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public Category findByName(String name) {
         return categoryRepository.findByName(name);
+    }
+
+    @Override
+    public Category getCategoryById(String id) {
+        return categoryRepository.findById(id).orElseThrow(() -> new RuntimeException("Category not found."));
     }
 }

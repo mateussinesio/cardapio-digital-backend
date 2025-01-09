@@ -1,4 +1,4 @@
 package menu.dtos;
 
-public record CategoryRequestDTO(String name, String imagePath) {
+public record CategoryRequestDTO(String name, String imagePath, boolean removeImage) {
 }

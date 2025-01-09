@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 
 public record CategoryResponseDTO(String id, String name, String image) {
     public CategoryResponseDTO(Category category) {
-        this(category.getId(), category.getName(), "/images/" + Paths.get(category.getImagePath()).getFileName().toString());
+        this(category.getId(), category.getName(),
+                category.getImagePath() != null ? "/images/" + Paths.get(category.getImagePath()).getFileName().toString() : null);
     }
 }

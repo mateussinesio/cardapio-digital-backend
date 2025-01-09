@@ -10,9 +10,11 @@ public interface CategoryService {
 
     Category addCategory(Category category);
 
-    Category deleteCategory(String id);
+    void deleteCategory(String id);
 
     Category updateCategory(String id, CategoryRequestDTO data);
 
-    Category findByName(String name); // Adicione este método
+    Category findByName(String name);
+
+    Category getCategoryById(String id);
 }
